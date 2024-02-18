@@ -42,7 +42,6 @@ public class KakaoServiceImpl implements KakaoService {
 
         String accessToken = "";
         String refreshToken = "";
-        System.err.println("INPUT");
 
         try {
             HttpHeaders headers = new HttpHeaders();
@@ -77,7 +76,6 @@ public class KakaoServiceImpl implements KakaoService {
             throw new Exception("API Call failed Exception");
         }
 
-        System.err.println(accessToken);
         return getUserInfoWithToken(accessToken);
     }
 
@@ -105,6 +103,12 @@ public class KakaoServiceImpl implements KakaoService {
 
         long id = (long) jsonObject.get("id");
         String email = account.get("email").toString();
+        String gender = account.get("gender").toString();
+        String name = account.get("name").toString();
+        String ageRange = account.get("age_range").toString();
+        String birthday = account.get("birthday").toString();
+        String birthyear = account.get("birthyear").toString();
+        String phoneNumber = account.get("phone_number").toString();
         String nickname = account.get("profile_nickname_needs_agreement").toString();
 
         return KakaoDTO.builder()
