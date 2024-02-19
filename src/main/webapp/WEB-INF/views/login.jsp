@@ -11,10 +11,10 @@
 <body>
     <div>
         <h2>Login Page</h2>
-        <div>
+        <div >
             <p><a href="${appleUrl}">애플로그인</a></p>
-            <p><a href="${kakaoUrl}">카카오로그인</a></p>
-            <p><a href="${naverUrl}">네이버로그인</a></p>
+            <p><a href="${kakaoUrl}"><img src="/resources/image/kakaologin.png" alt="kakaoLoingLink" /></a></p>
+            <p><a href="${naverUrl}"><img style="width: 120px;" src="/resources/image/naver_btnG_short.png" alt="naverLoingLink" /></a></p>
         </div>
     </div>
 </body>

@@ -36,3 +36,9 @@ kakao:
     secret: '2wQVjG7iFGlkvzLmHj3zklLQMFrsViZc'
   redirect:
     url: 'http://localhost:8091/kakao/callback'
+naver:
+  client:
+    id: 'f91s7mNYrAibAahv2fMc'
+    secret: 'mUWFI3qAKY'
+  redirect:
+    url: 'http://localhost:8091/naver/callback'

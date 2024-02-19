@@ -1,8 +1,9 @@
 package com.learnlogins.back.service.impl;
 
-import com.learnlogins.back.data.dto.KakaoDTO;
-import com.learnlogins.back.service.KakaoService;
+import com.learnlogins.back.data.dto.NaverDTO;
+import com.learnlogins.back.service.NaverService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.springframework.beans.factory.annotation.Value;
@@ -12,37 +13,44 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
+import java.net.URLEncoder;
+
 @Service
 @RequiredArgsConstructor
-public class KakaoServiceImpl implements KakaoService {
+@Log4j2
+public class NaverServiceImpl implements NaverService {
 
-    @Value("${kakao.client.id}")
-    private String KAKAO_CLIENT_ID;
+    @Value("${naver.client.id}")
+    private String NAVER_CLIENT_ID;
 
-    @Value("${kakao.client.secret}")
-    private String KAKAO_CLIENT_SECRET;
+    @Value("${naver.client.secret}")
+    private String NAVER_CLIENT_SECRET;
 
-    @Value("${kakao.redirect.url}")
-    private String KAKAO_REDIRECT_URL;
+    @Value("${naver.redirect.url}")
+    private String NAVER_REDIRECT_URL;
 
-    private final String KAKAO_AUTH_URI = "https://kauth.kakao.com";
-    private final String KAKAO_API_URI = "https://kapi.kakao.com";
+    private final String NAVER_AUTH_URI = "https://nid.naver.com";
+    private final String NAVER_API_URI = "https://openapi.naver.com";
 
     private final RestTemplate restTemplate;
 
-    public String getLoginUrl() {
-        StringBuffer kakaoLogin = new StringBuffer(KAKAO_AUTH_URI);
-        kakaoLogin.append("/oauth/authorize")
-                .append("?client_id=").append(KAKAO_CLIENT_ID)
-                .append("&redirect_uri=").append(KAKAO_REDIRECT_URL)
+    @Override
+    public String getLoginUrl(){
+        StringBuffer naverLogin = new StringBuffer(NAVER_AUTH_URI);
+
+        naverLogin.append("/oauth2.0/authorize" +
+                        "")
+                .append("?client_id=").append(NAVER_CLIENT_ID)
+                .append("&redirect_uri=").append(NAVER_REDIRECT_URL)
+                .append("&state=").append("test")
                 .append("&response_type=code");
 
-        return kakaoLogin.toString();
+        return naverLogin.toString();
     }
 
     @Override
-    public KakaoDTO getKakaoInfo(String code) throws Exception {
-        if (code == null) throw new Exception("Failed get authorization code");
+    public NaverDTO getNaverInfo(String code, String state) throws Exception {
+        if(code == null || state == null) throw new Exception("Failed get authorization code");
 
         String accessToken = "";
         String refreshToken = "";
@@ -53,15 +61,15 @@ public class KakaoServiceImpl implements KakaoService {
 
             MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
             params.add("grant_type", "authorization_code");
-            params.add("client_id", KAKAO_CLIENT_ID);
-            params.add("client_secret", KAKAO_CLIENT_SECRET);
+            params.add("client_id", NAVER_CLIENT_ID);
+            params.add("client_secret", NAVER_CLIENT_SECRET);
             params.add("code", code);
-            params.add("redirect_uri", KAKAO_REDIRECT_URL);
+            params.add("state", state);
 
             HttpEntity<MultiValueMap<String, String>> httpEntity = new HttpEntity<>(params, headers);
 
             ResponseEntity<String> response = restTemplate.exchange(
-                    KAKAO_AUTH_URI + "/oauth/token",
+                    NAVER_AUTH_URI + "/oauth2.0/token",
                     HttpMethod.POST,
                     httpEntity,
                     String.class
@@ -72,16 +80,17 @@ public class KakaoServiceImpl implements KakaoService {
 
             accessToken = (String) jsonObject.get("access_token");
             refreshToken = (String) jsonObject.get("refresh_token");
+
         } catch (Exception e) {
             e.printStackTrace();
+            log.error("Exception Message :: " + e.getMessage());
             throw new Exception("API Call failed Exception");
         }
-
         return getUserInfoWithToken(accessToken);
     }
 
     @Override
-    public KakaoDTO getUserInfoWithToken(String accessToken) throws Exception {
+    public NaverDTO getUserInfoWithToken(String accessToken) throws Exception {
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(accessToken);
         headers.setContentType(MediaType.valueOf(MediaType.APPLICATION_FORM_URLENCODED_VALUE));
@@ -89,7 +98,7 @@ public class KakaoServiceImpl implements KakaoService {
         HttpEntity<MultiValueMap<String, String>> httpEntity = new HttpEntity<>(headers);
 
         ResponseEntity<String> response = restTemplate.exchange(
-                KAKAO_API_URI + "/v2/user/me",
+                NAVER_API_URI + "/v1/nid/me",
                 HttpMethod.POST,
                 httpEntity,
                 String.class
@@ -97,26 +106,29 @@ public class KakaoServiceImpl implements KakaoService {
 
         JSONParser jsonParser = new JSONParser();
         JSONObject jsonObject = (JSONObject) jsonParser.parse(response.getBody());
-        JSONObject account = (JSONObject) jsonObject.get("kakao_account");
-        JSONObject profile = (JSONObject) jsonObject.get("profile");
+        String resultCode = (String) jsonObject.get("resultcode");
+        String message = (String) jsonObject.get("message");
 
-        long id = (long) jsonObject.get("id");
-        String email = String.valueOf(account.get("email"));
-        String gender = String.valueOf(account.get("gender"));
-        String name = String.valueOf(account.get("name"));
-        String ageRange = String.valueOf(account.get("age_range"));
-        String birthday = String.valueOf(account.get("birthday"));
-        String birthyear = String.valueOf(account.get("birthyear"));
-        String nickname = String.valueOf(account.get("profile_nickname_needs_agreement"));
+        JSONObject resData = (JSONObject) jsonObject.get("response");
 
-        return KakaoDTO.builder()
-                .email(email)
+        String id = String.valueOf(resData.get("id"));
+        String nickname = String.valueOf(resData.get("nickname"));
+        String profileImage = String.valueOf(resData.get("profile_image"));
+        String gender = String.valueOf(resData.get("gender"));
+        String email = String.valueOf(resData.get("email"));
+        String name = String.valueOf(resData.get("name"));
+        String birthday = String.valueOf(resData.get("birthday"));
+        String birthyear = String.valueOf(resData.get("birthyear"));
+
+        return NaverDTO.builder()
                 .nickname(nickname)
-                .ageRange(ageRange)
+                .profileImage(profileImage)
                 .gender(gender)
+                .email(email)
                 .name(name)
                 .birthday(birthday)
                 .birthyear(birthyear)
                 .build();
     }
+
 }
