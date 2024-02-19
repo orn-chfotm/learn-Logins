@@ -100,8 +100,6 @@ public class KakaoServiceImpl implements KakaoService {
         JSONObject account = (JSONObject) jsonObject.get("kakao_account");
         JSONObject profile = (JSONObject) jsonObject.get("profile");
 
-        System.err.println(account);
-
         long id = (long) jsonObject.get("id");
         String email = String.valueOf(account.get("email"));
         String gender = String.valueOf(account.get("gender"));
