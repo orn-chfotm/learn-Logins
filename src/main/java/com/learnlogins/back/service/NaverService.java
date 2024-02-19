@@ -1,6 +1,5 @@
 package com.learnlogins.back.service;
 
-import com.learnlogins.back.data.dto.KakaoDTO;
 import com.learnlogins.back.data.dto.NaverDTO;
 
 public interface NaverService extends SnsLoginService{

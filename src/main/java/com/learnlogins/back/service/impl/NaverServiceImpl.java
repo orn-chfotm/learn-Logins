@@ -1,5 +1,6 @@
 package com.learnlogins.back.service.impl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.learnlogins.back.data.dto.NaverDTO;
 import com.learnlogins.back.service.NaverService;
 import lombok.RequiredArgsConstructor;
@@ -12,8 +13,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
-
-import java.net.URLEncoder;
 
 @Service
 @RequiredArgsConstructor
@@ -109,26 +108,10 @@ public class NaverServiceImpl implements NaverService {
         String resultCode = (String) jsonObject.get("resultcode");
         String message = (String) jsonObject.get("message");
 
-        JSONObject resData = (JSONObject) jsonObject.get("response");
+        ObjectMapper objectMapper = new ObjectMapper();
+        NaverDTO naverDTO = objectMapper.readValue(jsonObject.get("response").toString(), NaverDTO.class);
 
-        String id = String.valueOf(resData.get("id"));
-        String nickname = String.valueOf(resData.get("nickname"));
-        String profileImage = String.valueOf(resData.get("profile_image"));
-        String gender = String.valueOf(resData.get("gender"));
-        String email = String.valueOf(resData.get("email"));
-        String name = String.valueOf(resData.get("name"));
-        String birthday = String.valueOf(resData.get("birthday"));
-        String birthyear = String.valueOf(resData.get("birthyear"));
-
-        return NaverDTO.builder()
-                .nickname(nickname)
-                .profileImage(profileImage)
-                .gender(gender)
-                .email(email)
-                .name(name)
-                .birthday(birthday)
-                .birthyear(birthyear)
-                .build();
+        return naverDTO;
     }
 
 }

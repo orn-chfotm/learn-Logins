@@ -1,11 +1,11 @@
 package com.learnlogins.back.data.dto;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Builder;
+import com.fasterxml.jackson.databind.PropertyNamingStrategy;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.Data;
 
-@Builder
 @Data
+@JsonNaming(value = PropertyNamingStrategy.SnakeCaseStrategy.class)
 public class NaverDTO {
 
     private String id;
@@ -22,11 +22,9 @@ public class NaverDTO {
 
     private String birthday;
 
-    @JsonProperty("profile_image")
     private String profileImage;
 
     private String birthyear;
 
     private String mobile;
-
 }
