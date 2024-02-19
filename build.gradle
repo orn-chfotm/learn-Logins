@@ -69,6 +69,12 @@ configurations {
     querydsl.extendsFrom compileClasspath //외부라이브러리 컴파일 경로 상속
 }
 
+compileQuerydsl.doFirst {
+    if(file(querydslDir).exists()) {
+        delete(file(querydslDir))
+    }
+}
+
 tasks.named('test') {
     useJUnitPlatform()
 }

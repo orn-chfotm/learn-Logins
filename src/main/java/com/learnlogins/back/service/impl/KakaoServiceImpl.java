@@ -2,6 +2,7 @@ package com.learnlogins.back.service.impl;
 
 import com.learnlogins.back.data.dto.KakaoDTO;
 import com.learnlogins.back.service.KakaoService;
+import lombok.RequiredArgsConstructor;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.springframework.beans.factory.annotation.Value;
@@ -12,6 +13,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 @Service
+@RequiredArgsConstructor
 public class KakaoServiceImpl implements KakaoService {
 
     @Value("${kakao.client.id}")
@@ -36,6 +38,8 @@ public class KakaoServiceImpl implements KakaoService {
         return kakaoLogin.toString();
     }
 
+    private final RestTemplate restTemplate;
+
     @Override
     public KakaoDTO getKakaoInfo(String code) throws Exception {
         if (code == null) throw new Exception("Failed get authorization code");
@@ -56,15 +60,12 @@ public class KakaoServiceImpl implements KakaoService {
 
             HttpEntity<MultiValueMap<String, String>> httpEntity = new HttpEntity<>(params, headers);
 
-            RestTemplate restTemplate = new RestTemplate();
-
             ResponseEntity<String> response = restTemplate.exchange(
                     KAKAO_AUTH_URI + "/oauth/token",
                     HttpMethod.POST,
                     httpEntity,
                     String.class
             );
-            System.err.println(response);
 
             JSONParser jsonParser = new JSONParser();
             JSONObject jsonObject = (JSONObject) jsonParser.parse(response.getBody());
@@ -87,8 +88,6 @@ public class KakaoServiceImpl implements KakaoService {
 
         HttpEntity<MultiValueMap<String, String>> httpEntity = new HttpEntity<>(headers);
 
-        RestTemplate restTemplate = new RestTemplate();
-
         ResponseEntity<String> response = restTemplate.exchange(
                 KAKAO_API_URI + "/v2/user/me",
                 HttpMethod.POST,
@@ -101,19 +100,25 @@ public class KakaoServiceImpl implements KakaoService {
         JSONObject account = (JSONObject) jsonObject.get("kakao_account");
         JSONObject profile = (JSONObject) jsonObject.get("profile");
 
+        System.err.println(account);
+
         long id = (long) jsonObject.get("id");
-        String email = account.get("email").toString();
-        String gender = account.get("gender").toString();
-        String name = account.get("name").toString();
-        String ageRange = account.get("age_range").toString();
-        String birthday = account.get("birthday").toString();
-        String birthyear = account.get("birthyear").toString();
-        String phoneNumber = account.get("phone_number").toString();
-        String nickname = account.get("profile_nickname_needs_agreement").toString();
+        String email = String.valueOf(account.get("email"));
+        String gender = String.valueOf(account.get("gender"));
+        String name = String.valueOf(account.get("name"));
+        String ageRange = String.valueOf(account.get("age_range"));
+        String birthday = String.valueOf(account.get("birthday"));
+        String birthyear = String.valueOf(account.get("birthyear"));
+        String nickname = String.valueOf(account.get("profile_nickname_needs_agreement"));
 
         return KakaoDTO.builder()
                 .email(email)
                 .nickname(nickname)
+                .ageRange(ageRange)
+                .gender(gender)
+                .name(name)
+                .birthday(birthday)
+                .birthyear(birthyear)
                 .build();
     }
 }
