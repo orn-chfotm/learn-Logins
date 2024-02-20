@@ -1,15 +1,23 @@
 package com.learnlogins.back.data.dto.response;
 
-import com.learnlogins.back.data.dto.NaverDTO;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
-@Builder
 @Data
-public class ApiLoginResponse {
+public class ApiLoginResponse <T>{
     String resultcode;
 
     String message;
 
-    NaverDTO response;
+    T response;
+
+    ApiLoginResponse(){}
+
+    @Builder
+    ApiLoginResponse (String resultcode, String message, T response) {
+        this.resultcode = resultcode;
+        this.message = message;
+        this.response = response;
+    }
 }

@@ -2,12 +2,14 @@ package com.learnlogins.back.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.learnlogins.back.data.dto.NaverDTO;
+import com.learnlogins.back.data.dto.response.ApiLoginResponse;
 import com.learnlogins.back.service.NaverService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
@@ -96,20 +98,16 @@ public class NaverServiceImpl implements NaverService {
 
         HttpEntity<MultiValueMap<String, String>> httpEntity = new HttpEntity<>(headers);
 
-        ResponseEntity<String> response = restTemplate.exchange(
+        ParameterizedTypeReference<ApiLoginResponse<NaverDTO>> typeReference = new ParameterizedTypeReference<ApiLoginResponse<NaverDTO>>() {};
+
+        ResponseEntity<ApiLoginResponse<NaverDTO>> response = restTemplate.exchange(
                 NAVER_API_URI + "/v1/nid/me",
                 HttpMethod.POST,
                 httpEntity,
-                String.class
+                typeReference
         );
 
-        JSONParser jsonParser = new JSONParser();
-        JSONObject jsonObject = (JSONObject) jsonParser.parse(response.getBody());
-        String resultCode = (String) jsonObject.get("resultcode");
-        String message = (String) jsonObject.get("message");
-
-        ObjectMapper objectMapper = new ObjectMapper();
-        NaverDTO naverDTO = objectMapper.readValue(jsonObject.get("response").toString(), NaverDTO.class);
+        NaverDTO naverDTO = response.getBody().getResponse();
 
         return naverDTO;
     }
